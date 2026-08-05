@@ -6,15 +6,16 @@ abstract class Model
     protected static string $primaryKey = 'id';
     protected static array $fillable = [];
     protected static bool $softDelete = false;
+    protected static array $searchable = [];
 
-    public static function all(int $page = 1, int $pageSize = 20, array $filters = []): array
+    public static function all(int $page = 1, int $pageSize = 20, array $filters = [], string $search = ''): array
     {
         $pdo = Database::connection();
         $page = max(1, $page);
         $pageSize = min(100, max(1, $pageSize));
         $offset = ($page - 1) * $pageSize;
 
-        [$whereSql, $params] = static::buildWhere($filters);
+        [$whereSql, $params] = static::buildWhere($filters, $search);
 
         $countStmt = $pdo->prepare("SELECT COUNT(*) AS total FROM " . static::$table . " $whereSql");
         $countStmt->execute($params);
@@ -30,6 +31,7 @@ abstract class Model
             'total' => $total,
             'page' => $page,
             'pageSize' => $pageSize,
+            'totalPages' => max(1, (int) ceil($total / $pageSize)),
         ];
     }
 
@@ -96,7 +98,7 @@ abstract class Model
         return array_intersect_key($data, array_flip(static::$fillable));
     }
 
-    protected static function buildWhere(array $filters): array
+    protected static function buildWhere(array $filters, string $search = ''): array
     {
         $conditions = [];
         $params = [];
@@ -108,6 +110,15 @@ abstract class Model
         foreach ($filters as $column => $value) {
             $conditions[] = "$column = ?";
             $params[] = $value;
+        }
+
+        if ($search !== '' && !empty(static::$searchable)) {
+            $searchConditions = [];
+            foreach (static::$searchable as $column) {
+                $searchConditions[] = "$column LIKE ?";
+                $params[] = '%' . $search . '%';
+            }
+            $conditions[] = '(' . implode(' OR ', $searchConditions) . ')';
         }
 
         $sql = $conditions ? 'WHERE ' . implode(' AND ', $conditions) : '';

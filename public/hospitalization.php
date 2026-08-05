@@ -16,8 +16,11 @@ require __DIR__ . '/../src/views/partials/header.php';
 
         <h2>Ingresos activos</h2>
         <div class="toolbar">
-            <span></span>
-            <button id="newAdmissionBtn" class="btn"><?= Icons::svg('plus') ?><span>Nuevo ingreso</span></button>
+            <input type="search" id="admissionsSearch" placeholder="Buscar por paciente, médico o motivo…" style="max-width:320px; padding:8px 11px; border:1px solid var(--slate-300); border-radius:6px; font-size:13.5px;">
+            <div style="display:flex; gap:8px;">
+                <a href="reports/admissions.pdf" class="btn btn-secondary"><?= Icons::svg('file') ?><span>Reporte PDF</span></a>
+                <button id="newAdmissionBtn" class="btn"><?= Icons::svg('plus') ?><span>Nuevo ingreso</span></button>
+            </div>
         </div>
         <div class="table-wrap">
             <table id="admissionsTable">

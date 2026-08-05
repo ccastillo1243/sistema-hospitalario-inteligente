@@ -99,6 +99,8 @@ $(function () {
         });
     });
 
+    attachTableSearch('#admissionsSearch', '#admissionsTable tbody');
+
     loadBeds();
     loadAdmissions();
 });

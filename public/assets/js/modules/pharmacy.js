@@ -126,6 +126,8 @@ $(function () {
         });
     });
 
+    attachTableSearch('#prescriptionsSearch', '#prescriptionsTable tbody');
+
     loadStock();
     loadPrescriptions();
 });

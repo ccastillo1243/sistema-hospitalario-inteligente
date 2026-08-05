@@ -37,6 +37,7 @@ $navItemsAll = [
     ['href' => 'billing.php', 'key' => 'billing', 'label' => 'Facturación', 'icon' => 'card'],
     ['href' => 'emergency.php', 'key' => 'emergency', 'label' => 'Emergencias', 'icon' => 'alert'],
     ['href' => 'users.php', 'key' => 'users', 'label' => 'Usuarios', 'icon' => 'lock'],
+    ['href' => 'audit.php', 'key' => 'audit', 'label' => 'Auditoría', 'icon' => 'file'],
 ];
 
 $navItems = array_values(array_filter(
@@ -90,6 +91,20 @@ $accesoPermitido = Permissions::canAccess($activeNav, $rolesSesion);
                 </button>
                 <h1 class="page-title"><?= htmlspecialchars($pageTitle, ENT_QUOTES, 'UTF-8') ?></h1>
                 <div class="topbar-spacer"></div>
+                <div class="notif-wrapper" style="position:relative;">
+                    <button id="notifBtn" class="icon-btn" type="button" aria-label="Notificaciones" style="position:relative;">
+                        <?= Icons::svg('bell', 'icon') ?>
+                        <span id="notifBadge" class="badge badge-red" style="display:none; position:absolute; top:-4px; right:-4px; padding:1px 5px; font-size:10px;"></span>
+                    </button>
+                    <div id="notifPanel" style="display:none; position:absolute; right:0; top:calc(100% + 8px); width:320px; background:#fff; border:1px solid var(--slate-200); border-radius:10px; box-shadow:var(--shadow-lg); z-index:50; max-height:380px; overflow-y:auto;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 14px; border-bottom:1px solid var(--slate-100);">
+                            <strong style="font-size:13px;">Notificaciones</strong>
+                            <button id="notifMarkAll" type="button" class="btn btn-secondary btn-sm" style="padding:3px 8px; font-size:11px;">Marcar todo leído</button>
+                        </div>
+                        <div id="notifList"></div>
+                    </div>
+                </div>
+                <a href="profile.php" class="icon-btn" title="Mi perfil"><?= Icons::svg('users', 'icon') ?></a>
                 <span class="role-pill"><?= $rolesTexto ?></span>
             </header>
             <main class="app-main">

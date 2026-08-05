@@ -16,7 +16,7 @@ require __DIR__ . '/../src/views/partials/header.php';
 
         <h2>Recetas</h2>
         <div class="toolbar">
-            <span></span>
+            <input type="search" id="prescriptionsSearch" placeholder="Buscar por paciente o médico…" style="max-width:320px; padding:8px 11px; border:1px solid var(--slate-300); border-radius:6px; font-size:13.5px;">
             <button id="newPrescriptionBtn" class="btn"><?= Icons::svg('plus') ?><span>Nueva receta</span></button>
         </div>
         <div class="table-wrap">

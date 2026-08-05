@@ -10,18 +10,26 @@ class StaffController
         AuthMiddleware::handle();
         RoleMiddleware::handle(self::$rolesLectura);
 
+        $search = trim((string) $request->query('q', ''));
         $pdo = Database::connection();
-        $rows = $pdo->query(
-            'SELECT m.id, p.id AS personal_id, p.nombre, p.apellido, p.telefono, p.cedula_profesional,
+
+        $sql = 'SELECT m.id, p.id AS personal_id, p.nombre, p.apellido, p.telefono, p.cedula_profesional,
                     GROUP_CONCAT(e.nombre SEPARATOR ", ") AS especialidades
              FROM medicos m
              JOIN personal p ON p.id = m.personal_id
              LEFT JOIN medico_especialidades me ON me.medico_id = m.id
              LEFT JOIN especialidades e ON e.id = me.especialidad_id
-             WHERE p.eliminado_en IS NULL
-             GROUP BY m.id, p.id, p.nombre, p.apellido, p.telefono, p.cedula_profesional
-             ORDER BY m.id DESC'
-        )->fetchAll();
+             WHERE p.eliminado_en IS NULL';
+        $paramsSql = [];
+        if ($search !== '') {
+            $sql .= ' AND (p.nombre LIKE ? OR p.apellido LIKE ? OR p.cedula_profesional LIKE ?)';
+            $paramsSql = ["%$search%", "%$search%", "%$search%"];
+        }
+        $sql .= ' GROUP BY m.id, p.id, p.nombre, p.apellido, p.telefono, p.cedula_profesional ORDER BY m.id DESC';
+
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($paramsSql);
+        $rows = $stmt->fetchAll();
 
         Response::json(['items' => $rows, 'total' => count($rows)]);
     }
@@ -131,14 +139,23 @@ class StaffController
         AuthMiddleware::handle();
         RoleMiddleware::handle(self::$rolesLectura);
 
+        $search = trim((string) $request->query('q', ''));
         $pdo = Database::connection();
-        $rows = $pdo->query(
-            'SELECT en.id, p.id AS personal_id, p.nombre, p.apellido, p.telefono, p.cedula_profesional
+
+        $sql = 'SELECT en.id, p.id AS personal_id, p.nombre, p.apellido, p.telefono, p.cedula_profesional
              FROM enfermeros en
              JOIN personal p ON p.id = en.personal_id
-             WHERE p.eliminado_en IS NULL
-             ORDER BY en.id DESC'
-        )->fetchAll();
+             WHERE p.eliminado_en IS NULL';
+        $paramsSql = [];
+        if ($search !== '') {
+            $sql .= ' AND (p.nombre LIKE ? OR p.apellido LIKE ? OR p.cedula_profesional LIKE ?)';
+            $paramsSql = ["%$search%", "%$search%", "%$search%"];
+        }
+        $sql .= ' ORDER BY en.id DESC';
+
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($paramsSql);
+        $rows = $stmt->fetchAll();
 
         Response::json(['items' => $rows, 'total' => count($rows)]);
     }

@@ -9,8 +9,11 @@ require __DIR__ . '/../src/views/partials/header.php';
         <h2>Casos de emergencia</h2>
         <p class="section-hint">Ordenados por prioridad de triage (más urgente primero), no por orden de llegada.</p>
         <div class="toolbar">
-            <span></span>
-            <button id="newCaseBtn" class="btn"><?= Icons::svg('plus') ?><span>Nuevo caso</span></button>
+            <input type="search" id="casesSearch" placeholder="Buscar por paciente o motivo…" style="max-width:320px; padding:8px 11px; border:1px solid var(--slate-300); border-radius:6px; font-size:13.5px;">
+            <div style="display:flex; gap:8px;">
+                <a href="reports/emergency-cases.xlsx" class="btn btn-secondary"><?= Icons::svg('file') ?><span>Reporte Excel</span></a>
+                <button id="newCaseBtn" class="btn"><?= Icons::svg('plus') ?><span>Nuevo caso</span></button>
+            </div>
         </div>
         <div class="table-wrap">
             <table id="casesTable">

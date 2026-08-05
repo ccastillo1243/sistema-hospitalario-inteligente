@@ -8,8 +8,11 @@ require __DIR__ . '/../src/views/partials/header.php';
 ?>
         <h2>Órdenes de radiología</h2>
         <div class="toolbar">
-            <span></span>
-            <button id="newOrderBtn" class="btn"><?= Icons::svg('plus') ?><span>Nueva orden</span></button>
+            <input type="search" id="ordersSearch" placeholder="Buscar por paciente o médico…" style="max-width:320px; padding:8px 11px; border:1px solid var(--slate-300); border-radius:6px; font-size:13.5px;">
+            <div style="display:flex; gap:8px;">
+                <a href="reports/radiology-orders.pdf" class="btn btn-secondary"><?= Icons::svg('file') ?><span>Reporte PDF</span></a>
+                <button id="newOrderBtn" class="btn"><?= Icons::svg('plus') ?><span>Nueva orden</span></button>
+            </div>
         </div>
         <div class="table-wrap">
             <table id="ordersTable">

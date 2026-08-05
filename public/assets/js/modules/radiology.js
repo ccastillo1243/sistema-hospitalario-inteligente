@@ -100,5 +100,7 @@ $(function () {
         });
     });
 
+    attachTableSearch('#ordersSearch', '#ordersTable tbody');
+
     loadOrders();
 });

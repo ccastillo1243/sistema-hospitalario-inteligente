@@ -1,8 +1,9 @@
 /**
- * CrudModule: monta un listado paginado + modal de alta/edición vía AJAX,
- * reutilizable para cualquier módulo (endpoint + columns + fields).
+ * CrudModule: monta un listado con búsqueda, paginación y modal de
+ * alta/edición vía AJAX, reutilizable para cualquier módulo.
  */
 var crudModuleCounter = 0;
+var PAGE_SIZE = 8;
 
 function CrudModule(config) {
     var instanceId = 'crud' + (++crudModuleCounter);
@@ -12,6 +13,28 @@ function CrudModule(config) {
     var $table = $(config.tableSelector);
     var $tbody = $table.find('tbody');
     var editingId = null;
+    var allItems = [];
+    var currentPage = 1;
+    var searchTimer = null;
+
+    // Barra de búsqueda, inyectada justo antes de la tabla
+    var $searchBar = $(
+        '<div style="margin-bottom:12px; max-width:320px;">' +
+            '<input type="search" class="crud-search" placeholder="Buscar…" style="width:100%; padding:8px 11px; border:1px solid var(--slate-300); border-radius:6px; font-size:13.5px;">' +
+        '</div>'
+    ).insertBefore($table.closest('.table-wrap'));
+    var $searchInput = $searchBar.find('.crud-search');
+
+    // Paginación, inyectada justo después de la tabla
+    var $pager = $(
+        '<div style="display:flex; align-items:center; justify-content:space-between; margin-top:10px; font-size:12.5px; color:var(--slate-500);">' +
+            '<span class="crud-pager-info"></span>' +
+            '<div style="display:flex; gap:6px;">' +
+                '<button type="button" class="btn btn-secondary btn-sm crud-prev">Anterior</button>' +
+                '<button type="button" class="btn btn-secondary btn-sm crud-next">Siguiente</button>' +
+            '</div>' +
+        '</div>'
+    ).insertAfter($table.closest('.table-wrap'));
 
     var $modalOverlay = $(
         '<div class="modal-overlay" id="' + instanceId + 'Overlay">' +
@@ -52,15 +75,36 @@ function CrudModule(config) {
         $tbody.append($tr);
     }
 
+    function renderPage() {
+        $tbody.empty();
+        var totalPages = Math.max(1, Math.ceil(allItems.length / PAGE_SIZE));
+        if (currentPage > totalPages) currentPage = totalPages;
+
+        if (!allItems.length) {
+            $tbody.append('<tr><td class="table-empty" colspan="' + (columns.length + 1) + '">Sin registros que coincidan.</td></tr>');
+            $pager.find('.crud-pager-info').text('0 resultados');
+            $pager.find('.crud-prev, .crud-next').prop('disabled', true);
+            return;
+        }
+
+        var start = (currentPage - 1) * PAGE_SIZE;
+        var pageItems = allItems.slice(start, start + PAGE_SIZE);
+        pageItems.forEach(renderRow);
+
+        $pager.find('.crud-pager-info').text(
+            allItems.length + ' resultado' + (allItems.length === 1 ? '' : 's') + ' — página ' + currentPage + ' de ' + totalPages
+        );
+        $pager.find('.crud-prev').prop('disabled', currentPage <= 1);
+        $pager.find('.crud-next').prop('disabled', currentPage >= totalPages);
+    }
+
     function load() {
         $tbody.html('<tr><td class="table-empty" colspan="' + (columns.length + 1) + '">Cargando…</td></tr>');
-        apiRequest({ url: endpoint + '?pageSize=100', method: 'GET' }).done(function (data) {
-            $tbody.empty();
-            if (!data.items.length) {
-                $tbody.append('<tr><td class="table-empty" colspan="' + (columns.length + 1) + '">Sin registros todavía.</td></tr>');
-                return;
-            }
-            data.items.forEach(renderRow);
+        var q = $searchInput.val() || '';
+        apiRequest({ url: endpoint + '?pageSize=100&q=' + encodeURIComponent(q), method: 'GET' }).done(function (data) {
+            allItems = data.items;
+            currentPage = 1;
+            renderPage();
         });
     }
 
@@ -134,6 +178,19 @@ function CrudModule(config) {
         }).fail(function (xhr) {
             $modalError.text((xhr.responseJSON && xhr.responseJSON.message) || 'Error al guardar').show();
         });
+    });
+
+    $searchInput.on('input', function () {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(load, 300);
+    });
+
+    $pager.find('.crud-prev').on('click', function () {
+        if (currentPage > 1) { currentPage--; renderPage(); }
+    });
+    $pager.find('.crud-next').on('click', function () {
+        var totalPages = Math.max(1, Math.ceil(allItems.length / PAGE_SIZE));
+        if (currentPage < totalPages) { currentPage++; renderPage(); }
     });
 
     if (config.newButtonSelector) {

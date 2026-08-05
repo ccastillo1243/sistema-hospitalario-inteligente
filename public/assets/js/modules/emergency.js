@@ -76,5 +76,7 @@ $(function () {
         });
     });
 
+    attachTableSearch('#casesSearch', '#casesTable tbody');
+
     loadCases();
 });

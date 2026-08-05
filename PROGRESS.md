@@ -605,3 +605,32 @@ Se agregó `<script src="assets/js/crud-module.js"></script>` en `footer.php`, c
 
 ### Lección para el futuro
 Al refactorizar layouts compartidos, verificar explícitamente que **todos** los `<script>` que las páginas cargaban individualmente antes de la migración sigan presentes después — un script "olvidado" falla en silencio en el navegador y no aparece en los logs del servidor PHP (por eso no se detectó en las pruebas por `curl` de la fase anterior, que solo verifican HTTP 200, no errores de JavaScript).
+
+---
+
+## Pendientes implementados: búsqueda, paginación, reportes, notificaciones, perfil y auditoría (2026-08-05)
+
+### Contexto
+Tras el resumen de "qué está implementado y qué no", el usuario pidió implementar todos los pendientes identificados: búsqueda/paginación en las tablas, reportes por módulo, notificaciones, perfil de usuario e historial de auditoría visible.
+
+### Hecho
+- **Búsqueda + paginación**: `Model::all()` y `CrudController::index()` ahora aceptan un parámetro `q` (búsqueda LIKE sobre columnas `$searchable` definidas por modelo, agregado a `Paciente`). `StaffController::doctors/nurses` y `AppointmentController::index` (SQL a medida) también aceptan `q`. `crud-module.js` (usado por Pacientes/Personal/Agenda) reescrito con caja de búsqueda con debounce y paginación client-side (8 filas por página, botones Anterior/Siguiente). Las 7 páginas a medida (Hospitalización, Laboratorio, Farmacia, Inventario, Radiología, Facturación, Emergencias) recibieron un campo de búsqueda que filtra las filas visibles en vivo (`attachTableSearch()` en `app.js`).
+- **Reportes por módulo**: 4 reportes nuevos en `ReportController` — Laboratorio (PDF), Radiología (PDF), Hospitalización/ingresos (PDF), Emergencias (Excel) — con su botón de descarga en la página correspondiente. En total el sistema ahora tiene 7 reportes (antes 3).
+- **Notificaciones**: `NotificationController` (propias del usuario en sesión: listar, marcar una como leída, marcar todas), campana con contador de no leídas en el topbar de **todas** las páginas (`header.php`), panel desplegable, refresco automático cada 60s.
+- **Perfil de usuario**: `AuthController::updateProfile` (editar nombre/apellido/email, cambio de contraseña con verificación de la actual), página `profile.php` accesible desde el ícono de usuario en el topbar, disponible para cualquier rol.
+- **Historial de auditoría**: `AuditController` (solo admin) con filtros por tabla/acción y búsqueda por usuario o ID de registro, página `audit.php` con selector de tabla poblado dinámicamente. Añadido al mapa de `Permissions.php` y a la navegación.
+
+### Errores encontrados
+- Ninguno nuevo; todo funcionó en el primer intento gracias a reutilizar los patrones ya corregidos (CSRF, auditoría, RBAC, charset).
+
+### Verificación realizada
+- Búsqueda: `GET /patients?q=Martínez` → 1 resultado exacto ✅; `GET /appointments?q=programada` → filtra por estado ✅.
+- Los 4 reportes nuevos descargados vía `curl` → `200`, firmas de archivo válidas (`%PDF` / `PK..` para xlsx) ✅.
+- Notificaciones: listado propio del admin, marcar como leída y actualización de perfil probados por API sin errores ✅.
+- Auditoría: `admin` ve el historial completo (`200`, incluye la propia actualización de perfil recién hecha, confirmando que el `Audit::log` de `updateProfile` funciona) ✅; `farmacia@hospital.com` recibe `403` en la API y el panel "No tienes acceso" en la página ✅.
+- Las 15 páginas del sistema (12 originales + Usuarios + Auditoría + Perfil) cargan con `200` y sin `Fatal error`/`Parse error` ✅.
+- Datos de prueba residuales de esta sesión de verificación limpiados; conteo de pacientes activos vuelve a 5 ✅.
+
+### Pendiente / notas
+- Verificación visual final en navegador pendiente de confirmación directa del usuario.
+- Con esto, de la lista de "no implementado" original solo quedan: envío real de correo (recuperación de contraseña), manuales/documentación de entrega (usuario, técnico, presentación, video) y medición formal de tiempos de respuesta/accesibilidad — fuera del alcance de "construir el sistema".

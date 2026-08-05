@@ -17,6 +17,7 @@ abstract class CrudController
 
         $page = (int) $request->query('page', 1);
         $pageSize = (int) $request->query('pageSize', 20);
+        $search = trim((string) $request->query('q', ''));
 
         $filters = [];
         foreach (static::$filterable as $column) {
@@ -26,7 +27,7 @@ abstract class CrudController
             }
         }
 
-        Response::json(static::$model::all($page, $pageSize, $filters));
+        Response::json(static::$model::all($page, $pageSize, $filters, $search));
     }
 
     public static function show(array $params, Request $request): void

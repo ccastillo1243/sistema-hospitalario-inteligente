@@ -38,6 +38,20 @@ function statusBadge(estado) {
     return '<span class="badge badge-' + color + '">' + texto + '</span>';
 }
 
+/**
+ * Filtra en vivo las filas de una tabla según el texto de un input de
+ * búsqueda (usado por las páginas a medida que no usan CrudModule).
+ */
+function attachTableSearch(inputSelector, tbodySelector) {
+    $(inputSelector).on('input', function () {
+        var q = $(this).val().toLowerCase();
+        $(tbodySelector).find('tr').each(function () {
+            var text = $(this).text().toLowerCase();
+            $(this).toggle(text.indexOf(q) !== -1);
+        });
+    });
+}
+
 $(function () {
     $('#logoutBtn').on('click', function () {
         apiRequest({ url: '/auth/logout', method: 'POST' }).always(function () {
@@ -55,4 +69,58 @@ $(function () {
             $sidebar.removeClass('open');
         }
     });
+
+    // Panel de notificaciones
+    if ($('#notifBtn').length) {
+        function loadNotifications() {
+            apiRequest({ url: '/notifications', method: 'GET' }).done(function (data) {
+                var $badge = $('#notifBadge');
+                if (data.noLeidas > 0) {
+                    $badge.text(data.noLeidas > 9 ? '9+' : data.noLeidas).show();
+                } else {
+                    $badge.hide();
+                }
+
+                var $list = $('#notifList').empty();
+                if (!data.items.length) {
+                    $list.append('<div style="padding:20px; text-align:center; color:var(--slate-400); font-size:12.5px;">Sin notificaciones.</div>');
+                    return;
+                }
+                data.items.forEach(function (n) {
+                    var $item = $('<div>').css({
+                        padding: '10px 14px',
+                        borderBottom: '1px solid var(--slate-100)',
+                        background: n.leida ? '#fff' : 'var(--blue-50)',
+                        cursor: n.leida ? 'default' : 'pointer',
+                    });
+                    $item.append($('<div>').css({ fontWeight: 600, fontSize: '12.5px' }).text(n.titulo));
+                    $item.append($('<div>').css({ fontSize: '12px', color: 'var(--slate-500)', marginTop: '2px' }).text(n.mensaje));
+                    $item.append($('<div>').css({ fontSize: '11px', color: 'var(--slate-400)', marginTop: '4px' }).text(n.creado_en));
+                    if (!n.leida) {
+                        $item.on('click', function () {
+                            apiRequest({ url: '/notifications/' + n.id + '/read', method: 'PUT' }).done(loadNotifications);
+                        });
+                    }
+                    $list.append($item);
+                });
+            });
+        }
+
+        $('#notifBtn').on('click', function (e) {
+            e.stopPropagation();
+            $('#notifPanel').toggle();
+        });
+        $('#notifMarkAll').on('click', function (e) {
+            e.stopPropagation();
+            apiRequest({ url: '/notifications/read-all', method: 'POST' }).done(loadNotifications);
+        });
+        $(document).on('click', function (e) {
+            if (!$(e.target).closest('#notifPanel, #notifBtn').length) {
+                $('#notifPanel').hide();
+            }
+        });
+
+        loadNotifications();
+        setInterval(loadNotifications, 60000);
+    }
 });

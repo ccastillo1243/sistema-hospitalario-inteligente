@@ -21,6 +21,7 @@ class Permissions
         'billing' => ['admin', 'facturacion', 'recepcion'],
         'emergency' => ['admin', 'medico', 'enfermeria', 'recepcion'],
         'users' => ['admin'],
+        'audit' => ['admin'],
     ];
 
     public static function canAccess(string $moduleKey, array $userRoles): bool

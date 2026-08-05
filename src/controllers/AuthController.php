@@ -85,6 +85,61 @@ class AuthController
     }
 
     /**
+     * Permite a cualquier usuario autenticado editar su propio nombre/apellido/email
+     * y, opcionalmente, cambiar su contraseña (requiere la actual).
+     */
+    public static function updateProfile(array $params, Request $request): void
+    {
+        AuthMiddleware::handle();
+        if (!Csrf::validate($request)) {
+            Response::error('Token CSRF inválido', 403);
+        }
+
+        $data = $request->all();
+        foreach (['nombre', 'apellido', 'email'] as $field) {
+            if (empty($data[$field])) {
+                Response::error("El campo '$field' es requerido", 400);
+            }
+        }
+
+        $pdo = Database::connection();
+        $userId = Auth::id();
+
+        $stmt = $pdo->prepare('SELECT id FROM usuarios WHERE email = ? AND id != ?');
+        $stmt->execute([$data['email'], $userId]);
+        if ($stmt->fetch()) {
+            Response::error('Ese correo ya está en uso por otro usuario', 409);
+        }
+
+        if (!empty($data['password_nueva'])) {
+            if (empty($data['password_actual'])) {
+                Response::error('Debes indicar tu contraseña actual para cambiarla', 400);
+            }
+            $stmt = $pdo->prepare('SELECT password_hash FROM usuarios WHERE id = ?');
+            $stmt->execute([$userId]);
+            $usuario = $stmt->fetch();
+            if (!password_verify($data['password_actual'], $usuario['password_hash'])) {
+                Response::error('La contraseña actual no es correcta', 401);
+            }
+            if (strlen((string) $data['password_nueva']) < 6) {
+                Response::error('La nueva contraseña debe tener al menos 6 caracteres', 400);
+            }
+            $pdo->prepare('UPDATE usuarios SET password_hash = ? WHERE id = ?')
+                ->execute([password_hash($data['password_nueva'], PASSWORD_BCRYPT), $userId]);
+        }
+
+        $pdo->prepare('UPDATE usuarios SET nombre = ?, apellido = ?, email = ? WHERE id = ?')
+            ->execute([$data['nombre'], $data['apellido'], $data['email'], $userId]);
+
+        $_SESSION['nombre'] = $data['nombre'];
+        $_SESSION['apellido'] = $data['apellido'];
+        $_SESSION['email'] = $data['email'];
+
+        Audit::log('usuarios', (string) $userId, 'update', ['nombre' => $data['nombre'], 'apellido' => $data['apellido'], 'email' => $data['email']]);
+        Response::json(['message' => 'Perfil actualizado correctamente']);
+    }
+
+    /**
      * Genera un token de recuperación de contraseña. En un entorno real se enviaría
      * por correo; para esta demo se devuelve en la respuesta (documentado en PROGRESS.md).
      */

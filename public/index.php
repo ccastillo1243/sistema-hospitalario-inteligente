@@ -44,6 +44,7 @@ $router->get('/', function () {
 $router->post('/auth/login', [AuthController::class, 'login']);
 $router->post('/auth/logout', [AuthController::class, 'logout']);
 $router->get('/auth/me', [AuthController::class, 'me']);
+$router->put('/auth/profile', [AuthController::class, 'updateProfile']);
 $router->post('/auth/password-reset/request', [AuthController::class, 'requestPasswordReset']);
 $router->post('/auth/password-reset/confirm', [AuthController::class, 'resetPassword']);
 
@@ -217,6 +218,16 @@ $router->get('/dashboard/emergency-by-priority', [DashboardController::class, 'e
 $router->get('/reports/patients.pdf', [ReportController::class, 'patientsPdf']);
 $router->get('/reports/invoices.xlsx', [ReportController::class, 'invoicesExcel']);
 $router->get('/reports/low-stock.pdf', [ReportController::class, 'lowStockPdf']);
+$router->get('/reports/lab-orders.pdf', [ReportController::class, 'labOrdersPdf']);
+$router->get('/reports/radiology-orders.pdf', [ReportController::class, 'radiologyOrdersPdf']);
+$router->get('/reports/admissions.pdf', [ReportController::class, 'admissionsPdf']);
+$router->get('/reports/emergency-cases.xlsx', [ReportController::class, 'emergencyCasesExcel']);
+
+$router->get('/notifications', [NotificationController::class, 'index']);
+$router->put('/notifications/{id}/read', [NotificationController::class, 'markRead']);
+$router->post('/notifications/read-all', [NotificationController::class, 'markAllRead']);
+
+$router->get('/admin/audit', [AuditController::class, 'index']);
 
 $router->get('/admin/users', [UserController::class, 'index']);
 $router->get('/admin/roles', [UserController::class, 'roles']);

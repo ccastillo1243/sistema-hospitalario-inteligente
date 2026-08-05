@@ -10,9 +10,10 @@ class AppointmentController
         AuthMiddleware::handle();
         RoleMiddleware::handle(self::$rolesLectura);
 
+        $search = trim((string) $request->query('q', ''));
         $pdo = Database::connection();
-        $rows = $pdo->query(
-            'SELECT c.id, c.fecha_hora, c.estado, c.motivo,
+
+        $sql = 'SELECT c.id, c.fecha_hora, c.estado, c.motivo,
                     p.nombre AS paciente_nombre, p.apellido AS paciente_apellido,
                     pe.nombre AS medico_nombre, pe.apellido AS medico_apellido,
                     tc.nombre AS tipo_cita
@@ -20,9 +21,17 @@ class AppointmentController
              JOIN pacientes p ON p.id = c.paciente_id
              JOIN medicos m ON m.id = c.medico_id
              JOIN personal pe ON pe.id = m.personal_id
-             JOIN tipos_cita tc ON tc.id = c.tipo_cita_id
-             ORDER BY c.fecha_hora DESC'
-        )->fetchAll();
+             JOIN tipos_cita tc ON tc.id = c.tipo_cita_id';
+        $paramsSql = [];
+        if ($search !== '') {
+            $sql .= ' WHERE (p.nombre LIKE ? OR p.apellido LIKE ? OR pe.nombre LIKE ? OR pe.apellido LIKE ? OR c.estado LIKE ?)';
+            $paramsSql = ["%$search%", "%$search%", "%$search%", "%$search%", "%$search%"];
+        }
+        $sql .= ' ORDER BY c.fecha_hora DESC';
+
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($paramsSql);
+        $rows = $stmt->fetchAll();
 
         Response::json(['items' => $rows, 'total' => count($rows)]);
     }

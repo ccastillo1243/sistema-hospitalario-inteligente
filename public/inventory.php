@@ -7,6 +7,10 @@ $activeNav = 'inventory';
 require __DIR__ . '/../src/views/partials/header.php';
 ?>
         <h2>Artículos de inventario</h2>
+        <div class="toolbar">
+            <input type="search" id="itemsSearch" placeholder="Buscar por nombre o categoría…" style="max-width:320px; padding:8px 11px; border:1px solid var(--slate-300); border-radius:6px; font-size:13.5px;">
+            <span></span>
+        </div>
         <div class="table-wrap">
             <table id="itemsTable">
                 <thead><tr><th>ID</th><th>Nombre</th><th>Categoría</th><th>Almacén</th><th>Existencia</th><th></th></tr></thead>

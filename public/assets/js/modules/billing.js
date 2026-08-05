@@ -77,5 +77,7 @@ $(function () {
         });
     });
 
+    attachTableSearch('#invoicesSearch', '#invoicesTable tbody');
+
     loadInvoices();
 });

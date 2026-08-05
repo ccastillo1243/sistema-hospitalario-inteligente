@@ -50,5 +50,7 @@ $(function () {
         });
     });
 
+    attachTableSearch('#itemsSearch', '#itemsTable tbody');
+
     loadItems();
 });
