@@ -551,3 +551,33 @@ El usuario pidió mejorar la experiencia y la interfaz visual del sistema. Hasta
 
 ### Pendiente / notas
 - Verificación visual completa en navegador (todos los módulos, el modal, el sidebar responsive) pendiente de confirmación del usuario.
+
+---
+
+## Datos de prueba adicionales + módulo Usuarios (admin) + navegación por rol (2026-08-05)
+
+### Contexto
+El usuario pidió: (1) completar datos de prueba a 2-3 ejemplos por tabla, (2) un módulo "Usuarios" visible solo para admin donde ver las cuentas disponibles y gestionarlas, (3) que el menú y las páginas oculten/bloqueen los módulos a los que un rol no tiene acceso, en vez de mostrar tablas vacías (que era confuso, parecía un error).
+
+### Hecho
+- `database/seed_test_data_2.sql` y `_3.sql`: completan catálogos que tenían solo 1 fila (medicamentos, proveedores, almacenes) y agregan una tercera transacción en cada módulo (citas, órdenes de laboratorio, recetas, órdenes de radiología, facturas, casos de emergencia) para que cada listado muestre 2-3 ejemplos reales.
+- `src/models/Usuario.php` + `src/controllers/UserController.php` (nuevo, exclusivo `admin`): `index` (lista usuarios con roles vía `GROUP_CONCAT`, estado activo/bloqueado, último login), `roles` (catálogo de roles para el formulario), `store`/`update` (crear/editar usuario con contraseña hasheada y reasignación de roles en `usuario_roles`, transaccional), `destroy` (soft delete, **con protección explícita contra que un admin se elimine a sí mismo**).
+- `public/users.php` + `assets/js/modules/users.js`: tabla de usuarios con badges de rol/estado, modal de alta/edición con checkboxes de roles.
+- `src/core/Permissions.php` (nuevo): mapa central `módulo → roles permitidos`, reflejando exactamente los `rolesLectura` ya definidos en cada Controller del backend.
+- `src/views/partials/header.php` modificado: filtra los enlaces del sidebar según `Permissions::canAccess()` (cada rol ve solo sus módulos), y **bloquea el acceso directo por URL** — si alguien visita una página a la que su rol no tiene permiso, ve un panel "No tienes acceso a este módulo" con botón para volver al inicio, en vez de una página con tablas vacías.
+- `public/dashboard.php`: los enlaces de reporte (Excel de facturas, PDF de stock bajo) ahora solo se muestran a los roles que realmente pueden descargarlos (`admin`/`facturacion` y `admin`/`farmacia` respectivamente), evitando otro caso de "botón que da 403 al hacer clic".
+
+### Errores encontrados
+- Ninguno de código; sí un error en mis propias pruebas manuales (usar una variable de shell `$CSRF` definida en una llamada de Bash anterior, que no persiste entre invocaciones separadas de la herramienta) que produjo un falso `403` al probar el borrado de usuario — no era un bug de la aplicación, se confirmó repitiendo la prueba con un token fresco en la misma llamada.
+
+### Verificación realizada
+- Conteos finales: `citas=3, ordenes_laboratorio=3, recetas=3, ordenes_radiologia=3, facturas=3, casos_emergencia=3, medicamentos=3, proveedores=3, almacenes=3` ✅.
+- `GET /admin/users` (admin) → lista los 10 usuarios con sus roles agrupados ✅; el mismo endpoint con `farmacia@hospital.com` → `403` ✅.
+- Crear usuario con 2 roles (`admin`, `medico`) → verificado en `usuario_roles` que ambos quedan asignados ✅; login exitoso con ese usuario nuevo ✅.
+- Intentar que el admin se elimine a sí mismo → `400 No puedes eliminar tu propio usuario` ✅; eliminar el usuario de prueba → soft delete confirmado (`usuarios` activos vuelve a 10) ✅.
+- **Navegación por rol**: `farmacia@hospital.com` en `app.php` solo ve 6 enlaces (Inicio, Dashboard, Pacientes, Personal, Farmacia, Inventario) ✅; `admin@hospital.com` ve los 13 (incluye "Usuarios") ✅.
+- Visitar `hospitalization.php` o `users.php` directamente por URL como `farmacia` → panel "No tienes acceso a este módulo" en vez de tablas vacías o error ✅.
+- Dashboard: `medico1@hospital.com` solo ve el botón de reporte "Pacientes (PDF)", no los de facturación/farmacia a los que no tiene acceso ✅.
+
+### Pendiente / notas
+- Verificación visual en navegador pendiente de confirmación directa del usuario (se abrió `login.php` para que la revise).

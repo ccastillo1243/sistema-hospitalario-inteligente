@@ -218,4 +218,10 @@ $router->get('/reports/patients.pdf', [ReportController::class, 'patientsPdf']);
 $router->get('/reports/invoices.xlsx', [ReportController::class, 'invoicesExcel']);
 $router->get('/reports/low-stock.pdf', [ReportController::class, 'lowStockPdf']);
 
+$router->get('/admin/users', [UserController::class, 'index']);
+$router->get('/admin/roles', [UserController::class, 'roles']);
+$router->post('/admin/users', [UserController::class, 'store']);
+$router->put('/admin/users/{id}', [UserController::class, 'update']);
+$router->delete('/admin/users/{id}', [UserController::class, 'destroy']);
+
 $router->dispatch();

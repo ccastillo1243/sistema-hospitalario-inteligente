@@ -12,8 +12,12 @@ require __DIR__ . '/../src/views/partials/header.php';
         <div class="panel reports-bar">
             <strong style="margin-right:4px;">Reportes:</strong>
             <a href="reports/patients.pdf" class="btn btn-secondary btn-sm"><?= Icons::svg('file') ?><span>Pacientes (PDF)</span></a>
-            <a href="reports/invoices.xlsx" class="btn btn-secondary btn-sm"><?= Icons::svg('file') ?><span>Facturas (Excel)</span></a>
-            <a href="reports/low-stock.pdf" class="btn btn-secondary btn-sm"><?= Icons::svg('file') ?><span>Stock bajo (PDF)</span></a>
+            <?php if (array_intersect(['admin', 'facturacion'], $rolesSesion)): ?>
+                <a href="reports/invoices.xlsx" class="btn btn-secondary btn-sm"><?= Icons::svg('file') ?><span>Facturas (Excel)</span></a>
+            <?php endif; ?>
+            <?php if (array_intersect(['admin', 'farmacia'], $rolesSesion)): ?>
+                <a href="reports/low-stock.pdf" class="btn btn-secondary btn-sm"><?= Icons::svg('file') ?><span>Stock bajo (PDF)</span></a>
+            <?php endif; ?>
         </div>
 
         <div class="charts-grid">

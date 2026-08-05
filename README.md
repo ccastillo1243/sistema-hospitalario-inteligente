@@ -51,6 +51,8 @@ Esto descarga `vendor/` con **TCPDF** (reportes PDF) y **PhpSpreadsheet** (repor
    mysql -u root --default-character-set=utf8mb4 sistema_hospitalario < database/seed.sql
    mysql -u root --default-character-set=utf8mb4 sistema_hospitalario < database/migration_02_password_reset.sql
    mysql -u root --default-character-set=utf8mb4 sistema_hospitalario < database/seed_test_data.sql
+   mysql -u root --default-character-set=utf8mb4 sistema_hospitalario < database/seed_test_data_2.sql
+   mysql -u root --default-character-set=utf8mb4 sistema_hospitalario < database/seed_test_data_3.sql
    ```
    Esto crea las 67 tablas, 5 vistas, 4 triggers, 2 procedimientos almacenados, 2 funciones, y datos de prueba en todas las tablas.
 
