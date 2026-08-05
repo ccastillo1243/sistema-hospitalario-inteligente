@@ -71,7 +71,7 @@ Edita `src/config/config.php` si tu usuario/contraseña de MySQL no son los de X
 
 ## 4. Levantar el servidor
 
-**Opción A — servidor embebido de PHP** (más simple, recomendado para probar rápido):
+**Opción A — servidor embebido de PHP (recomendada, evita problemas de configuración de Apache):**
 
 ```bash
 php -S localhost:8000 -t public public/index.php
@@ -81,7 +81,28 @@ php -S localhost:8000 -t public public/index.php
 
 Abre **http://localhost:8000/login.php**
 
-**Opción B — Apache de XAMPP**: copia/enlaza la carpeta del proyecto dentro de `C:\xampp\htdocs\`, y configura el **document root** apuntando a la subcarpeta `public/` (no a la raíz del proyecto — el `.htaccess` de la raíz bloquea todo el acceso por seguridad, a propósito).
+**Opción B — Apache de XAMPP (requiere Virtual Host, NO simplemente copiar a htdocs):**
+
+⚠️ **No accedas al proyecto como** `http://localhost/sistema-hospitalario-inteligente/public/index.php` **con la carpeta suelta dentro de `htdocs`.** Aunque arregles el error "Forbidden", el sistema seguirá roto: el login y todos los módulos usan rutas absolutas (`/auth/login`, `/patients`, etc.) que asumen que el sitio vive en la raíz del dominio (`http://localhost/`), no en una subcarpeta.
+
+La forma correcta con Apache es un **Virtual Host** cuyo `DocumentRoot` apunte directo a la carpeta `public/` del proyecto:
+
+1. Edita `C:\xampp\apache\conf\extra\httpd-vhosts.conf` y agrega:
+   ```apache
+   <VirtualHost *:80>
+       ServerName hospital.local
+       DocumentRoot "C:/xampp/htdocs/sistema-hospitalario-inteligente/public"
+       <Directory "C:/xampp/htdocs/sistema-hospitalario-inteligente/public">
+           AllowOverride All
+           Require all granted
+       </Directory>
+   </VirtualHost>
+   ```
+2. Agrega esta línea a `C:\Windows\System32\drivers\etc\hosts` (como administrador): `127.0.0.1 hospital.local`
+3. Reinicia Apache desde el panel de XAMPP.
+4. Abre **http://hospital.local/login.php**
+
+Si aun así ves **"Forbidden"**, es porque el `.htaccess` de la raíz del proyecto (que bloquea el acceso directo al código fuente por seguridad) se está heredando — confirma que el `DocumentRoot` apunta a `public/` y no a la carpeta raíz del proyecto.
 
 ## 5. Iniciar sesión
 
