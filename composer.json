@@ -1,0 +1,14 @@
+{
+    "name": "hospital/sistema-hospitalario",
+    "type": "project",
+    "authors": [
+        {
+            "name": "Cristian Castillo",
+            "email": "ccastillo@sbfcorp.com"
+        }
+    ],
+    "require": {
+        "phpoffice/phpspreadsheet": "^5.9",
+        "tecnickcom/tcpdf": "^6.6"
+    }
+}

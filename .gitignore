@@ -1,0 +1,6 @@
+vendor/
+node_modules/
+composer.phar
+.env
+*.log
+.DS_Store
