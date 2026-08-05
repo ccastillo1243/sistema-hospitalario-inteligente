@@ -581,3 +581,27 @@ El usuario pidió: (1) completar datos de prueba a 2-3 ejemplos por tabla, (2) u
 
 ### Pendiente / notas
 - Verificación visual en navegador pendiente de confirmación directa del usuario (se abrió `login.php` para que la revise).
+
+---
+
+## Fix crítico: Pacientes/Personal/Agenda no funcionaban (2026-08-05)
+
+### Contexto
+El usuario reportó que Pacientes, Personal y Agenda médica "no dejan hacer nada, ni crear" en el navegador.
+
+### Causa raíz (bug real)
+Al migrar las 12 páginas al layout compartido (`header.php`/`footer.php`) durante la mejora de UX/UI, `footer.php` quedó cargando `jquery.min.js`, `app.js` y el script propio del módulo (`pageScript`) — pero **`crud-module.js` (que define la función global `CrudModule` usada por `patients.js`, `staff.js` y `appointments.js`) dejó de incluirse en cualquier página**. Como `CrudModule` no existía, la llamada `CrudModule({...})` al final de cada script de módulo lanzaba `ReferenceError: CrudModule is not defined`, deteniendo la ejecución del script completo — la tabla nunca cargaba datos y el botón "Nuevo" no abría el modal, sin ningún error visible para el usuario (solo en la consola del navegador).
+
+Los módulos a medida (Hospitalización, Laboratorio, Farmacia, Radiología, Facturación, Emergencias) no usan `CrudModule`, por eso seguían funcionando — solo se rompieron los tres que sí dependen de él.
+
+### Solución
+Se agregó `<script src="assets/js/crud-module.js"></script>` en `footer.php`, cargado de forma incondicional para las 12 páginas (después de `app.js`, antes del script del módulo) — es una función pura sin efectos secundarios, así que no afecta a las páginas que no la usan.
+
+### Verificación realizada
+- Se confirmó por API (`curl`) que el backend de `patients`/`staff/doctors`/`appointments` **nunca estuvo roto** — crear vía API funcionaba correctamente durante todo el incidente, confirmando que el bug era 100% de frontend.
+- `grep` sobre las 12 páginas confirma que `crud-module.js` ahora se incluye en todas ✅.
+- El asset `assets/js/crud-module.js` responde `200` ✅.
+- Reverificación end-to-end: crear paciente vía API tras el fix sigue funcionando (el fix no tocó el backend) ✅.
+
+### Lección para el futuro
+Al refactorizar layouts compartidos, verificar explícitamente que **todos** los `<script>` que las páginas cargaban individualmente antes de la migración sigan presentes después — un script "olvidado" falla en silencio en el navegador y no aparece en los logs del servidor PHP (por eso no se detectó en las pruebas por `curl` de la fase anterior, que solo verifican HTTP 200, no errores de JavaScript).
