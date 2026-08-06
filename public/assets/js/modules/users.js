@@ -33,6 +33,11 @@ $(function () {
             data.items.forEach(function (u) {
                 var bloqueado = u.bloqueado_hasta && new Date(u.bloqueado_hasta.replace(' ', 'T')) > new Date();
                 var $actions = $('<td class="table-actions">');
+                if (bloqueado) {
+                    $('<button type="button" class="btn btn-sm btn-secondary" title="Desbloquear">Desbloquear</button>')
+                        .on('click', function () { unlockUser(u); })
+                        .appendTo($actions);
+                }
                 $('<button type="button" class="icon-btn" title="Editar">✎</button>')
                     .on('click', function () { openEdit(u); })
                     .appendTo($actions);
@@ -96,6 +101,12 @@ $(function () {
         if (!confirm('¿Eliminar al usuario ' + u.nombre + ' ' + u.apellido + '?')) return;
         apiRequest({ url: '/admin/users/' + u.id, method: 'DELETE' }).done(loadUsers).fail(function (xhr) {
             alert((xhr.responseJSON && xhr.responseJSON.message) || 'No se pudo eliminar');
+        });
+    }
+
+    function unlockUser(u) {
+        apiRequest({ url: '/admin/users/' + u.id + '/unlock', method: 'POST' }).done(loadUsers).fail(function (xhr) {
+            alert((xhr.responseJSON && xhr.responseJSON.message) || 'No se pudo desbloquear');
         });
     }
 

@@ -234,5 +234,6 @@ $router->get('/admin/roles', [UserController::class, 'roles']);
 $router->post('/admin/users', [UserController::class, 'store']);
 $router->put('/admin/users/{id}', [UserController::class, 'update']);
 $router->delete('/admin/users/{id}', [UserController::class, 'destroy']);
+$router->post('/admin/users/{id}/unlock', [UserController::class, 'unlock']);
 
 $router->dispatch();

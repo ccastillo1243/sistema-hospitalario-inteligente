@@ -143,6 +143,22 @@ class UserController
         Response::json(['message' => 'Usuario actualizado correctamente']);
     }
 
+    public static function unlock(array $params, Request $request): void
+    {
+        AuthMiddleware::handle();
+        RoleMiddleware::handle(self::$rolesAdmin);
+        if (!Csrf::validate($request)) {
+            Response::error('Token CSRF inválido', 403);
+        }
+
+        $id = (int) $params['id'];
+        $pdo = Database::connection();
+        $pdo->prepare('UPDATE usuarios SET bloqueado_hasta = NULL WHERE id = ?')->execute([$id]);
+
+        Audit::log('usuarios', (string) $id, 'update', ['accion' => 'desbloqueo manual']);
+        Response::json(['message' => 'Usuario desbloqueado correctamente']);
+    }
+
     public static function destroy(array $params, Request $request): void
     {
         AuthMiddleware::handle();
