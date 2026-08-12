@@ -38,9 +38,9 @@ require __DIR__ . '/../src/views/partials/header.php';
                     <button type="button" class="icon-btn" id="cancelAdmissionBtn">&times;</button>
                 </div>
                 <form id="admissionForm">
-                    <div class="field"><label>ID paciente</label><input type="number" id="adm_paciente_id" required></div>
-                    <div class="field"><label>ID cama (debe estar libre)</label><input type="number" id="adm_cama_id" required></div>
-                    <div class="field"><label>ID médico</label><input type="number" id="adm_medico_id" required></div>
+                    <div class="field"><label>Paciente</label><select id="adm_paciente_id" required></select></div>
+                    <div class="field"><label>Cama (solo libres)</label><select id="adm_cama_id" required></select></div>
+                    <div class="field"><label>Médico</label><select id="adm_medico_id" required></select></div>
                     <div class="field"><label>Motivo</label><input type="text" id="adm_motivo" required></div>
                     <div class="form-actions">
                         <button type="submit" class="btn">Registrar ingreso</button>

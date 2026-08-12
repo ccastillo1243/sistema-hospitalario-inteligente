@@ -12,6 +12,9 @@ $(function () {
                     $('<button class="btn btn-sm btn-secondary">Atender</button>').on('click', function () {
                         $('#atn_caso_id').val(c.id);
                         $('#attendCaseId').text(c.id);
+                        populateSelect('#atn_medico_id', '/staff/doctors',
+                            function (m) { return m.nombre + ' ' + m.apellido; },
+                            { placeholder: 'Selecciona un médico…' });
                         $('#attendModal').addClass('open');
                     }).appendTo($actions);
                 } else {
@@ -33,7 +36,17 @@ $(function () {
         });
     }
 
-    $('#newCaseBtn').on('click', function () { $('#caseModal').addClass('open'); });
+    function openCaseModal() {
+        populateSelect('#cas_paciente_id', '/patients?pageSize=100',
+            function (p) { return p.nombre + ' ' + p.apellido + ' — ' + p.documento_identidad; },
+            { placeholder: 'Selecciona un paciente…' });
+        populateSelect('#cas_nivel_id', '/emergency/triage-levels',
+            function (n) { return n.nombre + ' (prioridad ' + n.prioridad + ')'; },
+            { placeholder: 'Selecciona un nivel de triage…' });
+        $('#caseModal').addClass('open');
+    }
+
+    $('#newCaseBtn').on('click', openCaseModal);
     $('#cancelCaseBtn, #cancelCaseBtn2').on('click', function () { $('#caseModal').removeClass('open'); });
     $('#cancelAttendBtn, #cancelAttendBtn2').on('click', function () { $('#attendModal').removeClass('open'); });
     $('.modal-overlay').on('click', function (e) { if (e.target === this) $(this).removeClass('open'); });

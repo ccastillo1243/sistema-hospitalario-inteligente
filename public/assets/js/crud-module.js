@@ -114,6 +114,32 @@ function CrudModule(config) {
             var value = item ? (item[field.name] ?? '') : '';
             var $wrapper = $('<div class="field">');
             $wrapper.append($('<label>').attr('for', 'f_' + field.name).text(field.label));
+
+            if (field.type === 'select') {
+                var $select = $('<select>')
+                    .attr('id', 'f_' + field.name)
+                    .attr('name', field.name)
+                    .prop('required', !!field.required);
+                $wrapper.append($select);
+                $form.append($wrapper);
+
+                if (field.options) {
+                    // Opciones estáticas (ej. estados fijos)
+                    $select.append($('<option>').val('').text(field.placeholder || 'Selecciona…'));
+                    field.options.forEach(function (opt) {
+                        $select.append($('<option>').val(opt.value).text(opt.label));
+                    });
+                    if (value !== '') $select.val(String(value));
+                } else {
+                    populateSelect($select, field.optionsEndpoint, field.optionsLabel, {
+                        valueKey: field.optionsValue || 'id',
+                        placeholder: field.placeholder || 'Selecciona…',
+                        selected: value,
+                    });
+                }
+                return;
+            }
+
             $wrapper.append(
                 $('<input>')
                     .attr('type', field.type || 'text')

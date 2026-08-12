@@ -5,6 +5,24 @@ class StaffController
     private static array $rolesLectura = ['admin', 'medico', 'enfermeria', 'recepcion', 'farmacia', 'laboratorio', 'radiologia', 'facturacion'];
     private static array $rolesAdmin = ['admin'];
 
+    /**
+     * Lista plana de personal (cualquier tipo), usada para llenar combos
+     * como "realizado por" / "radiólogo" donde no aplica un rol clínico
+     * específico (médico o enfermero).
+     */
+    public static function personal(array $params, Request $request): void
+    {
+        AuthMiddleware::handle();
+        RoleMiddleware::handle(self::$rolesLectura);
+
+        $pdo = Database::connection();
+        $rows = $pdo->query(
+            'SELECT id, nombre, apellido, tipo FROM personal WHERE eliminado_en IS NULL ORDER BY nombre'
+        )->fetchAll();
+
+        Response::json(['items' => $rows, 'total' => count($rows)]);
+    }
+
     public static function doctors(array $params, Request $request): void
     {
         AuthMiddleware::handle();

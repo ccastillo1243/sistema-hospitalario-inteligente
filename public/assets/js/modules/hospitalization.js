@@ -52,7 +52,20 @@ $(function () {
         });
     }
 
-    $('#newAdmissionBtn').on('click', function () { $('#admissionModal').addClass('open'); });
+    function openAdmissionModal() {
+        populateSelect('#adm_paciente_id', '/patients?pageSize=100',
+            function (p) { return p.nombre + ' ' + p.apellido + ' — ' + p.documento_identidad; },
+            { placeholder: 'Selecciona un paciente…' });
+        populateSelect('#adm_medico_id', '/staff/doctors',
+            function (m) { return m.nombre + ' ' + m.apellido; },
+            { placeholder: 'Selecciona un médico…' });
+        populateSelect('#adm_cama_id', '/beds?estado=libre&pageSize=100',
+            function (b) { return 'Cama ' + b.codigo + ' (habitación ' + b.habitacion_id + ')'; },
+            { placeholder: 'Selecciona una cama libre…' });
+        $('#admissionModal').addClass('open');
+    }
+
+    $('#newAdmissionBtn').on('click', openAdmissionModal);
     $('#cancelAdmissionBtn, #cancelAdmissionBtn2').on('click', function () { $('#admissionModal').removeClass('open'); });
     $('#cancelDischargeBtn, #cancelDischargeBtn2').on('click', function () { $('#dischargeModal').removeClass('open'); });
     $('.modal-overlay').on('click', function (e) {

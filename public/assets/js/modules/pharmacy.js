@@ -1,4 +1,6 @@
 $(function () {
+    var medicamentosById = {};
+
     function loadStock() {
         apiRequest({ url: '/pharmacy/medications/stock', method: 'GET' }).done(function (data) {
             var $tbody = $('#stockTable tbody').empty();
@@ -51,9 +53,10 @@ $(function () {
             data.items.forEach(function (it) {
                 var $actions = $('<td>');
                 $('<button class="btn btn-sm">Dispensar</button>').on('click', function () { dispense(it.id, it.cantidad); }).appendTo($actions);
+                var nombreMed = medicamentosById[it.medicamento_id] || ('#' + it.medicamento_id);
                 $tbody.append(
                     $('<tr>').append(
-                        $('<td>').text(it.medicamento_id),
+                        $('<td>').text(nombreMed),
                         $('<td>').text(it.cantidad),
                         $('<td>').text(it.indicaciones || ''),
                         $actions
@@ -66,9 +69,15 @@ $(function () {
     function openItems(recetaId) {
         $('#item_receta_id').val(recetaId);
         $('#itemsRecetaId').text(recetaId);
+        populateSelect('#item_medicamento_id', '/pharmacy/medications?pageSize=100',
+            function (m) { return m.nombre + ' — ' + m.presentacion; },
+            { placeholder: 'Selecciona un medicamento…' }
+        ).done(function (data) {
+            (data.items || []).forEach(function (m) { medicamentosById[m.id] = m.nombre; });
+            loadItems(recetaId);
+        });
         $('#itemsPanel').show();
         $('html, body').animate({ scrollTop: $('#itemsPanel').offset().top - 90 }, 200);
-        loadItems(recetaId);
     }
 
     function dispense(recetaItemId, cantidad) {
@@ -84,7 +93,17 @@ $(function () {
         });
     }
 
-    $('#newPrescriptionBtn').on('click', function () { $('#prescriptionModal').addClass('open'); });
+    function openPrescriptionModal() {
+        populateSelect('#rec_paciente_id', '/patients?pageSize=100',
+            function (p) { return p.nombre + ' ' + p.apellido + ' — ' + p.documento_identidad; },
+            { placeholder: 'Selecciona un paciente…' });
+        populateSelect('#rec_medico_id', '/staff/doctors',
+            function (m) { return m.nombre + ' ' + m.apellido; },
+            { placeholder: 'Selecciona un médico…' });
+        $('#prescriptionModal').addClass('open');
+    }
+
+    $('#newPrescriptionBtn').on('click', openPrescriptionModal);
     $('#cancelPrescriptionBtn, #cancelPrescriptionBtn2').on('click', function () { $('#prescriptionModal').removeClass('open'); });
     $('#closeItemsBtn').on('click', function () { $('#itemsPanel').hide(); });
     $('.modal-overlay').on('click', function (e) { if (e.target === this) $(this).removeClass('open'); });

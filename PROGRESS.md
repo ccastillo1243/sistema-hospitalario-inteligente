@@ -634,3 +634,31 @@ Tras el resumen de "qué está implementado y qué no", el usuario pidió implem
 ### Pendiente / notas
 - Verificación visual final en navegador pendiente de confirmación directa del usuario.
 - Con esto, de la lista de "no implementado" original solo quedan: envío real de correo (recuperación de contraseña), manuales/documentación de entrega (usuario, técnico, presentación, video) y medición formal de tiempos de respuesta/accesibilidad — fuera del alcance de "construir el sistema".
+
+---
+
+## Fix crítico: jQuery/Chart.js nunca subidos al repo + combobox de IDs en todos los formularios (2026-08-12)
+
+### Contexto
+Un amigo probó el proyecto clonado desde GitHub y el login (y el resto del sistema) no funcionaba, aunque en la máquina de desarrollo todo funcionaba bien. Analizando un video de pantalla que envió (extracción de frames con `opencv`) se vio que el login caía a un envío nativo por GET (contraseña visible en la URL), señal de que jQuery nunca se cargó.
+
+### Causa raíz
+El `.gitignore` tenía la línea `vendor/` (sin `/` inicial), que en Git hace *match* contra **cualquier** carpeta llamada `vendor` en cualquier profundidad del árbol — no solo la raíz. Eso excluyó silenciosamente `public/assets/js/vendor/jquery.min.js` y `chart.umd.min.js` del control de versiones desde el principio: existían en disco pero jamás se habían subido a GitHub. Confirmado con `git ls-files | grep -i vendor` (vacío).
+
+### Fix
+- `.gitignore`: `vendor/` → `/vendor/` (solo la raíz, para excluir el `vendor/` de Composer).
+- `git add -f` sobre ambos archivos JS, verificado que el contenido en stage es idéntico byte a byte al de disco.
+- Diff completo `comm -23` entre archivos locales y `git ls-files` para confirmar que ningún otro archivo caía en el mismo bug.
+
+### Combobox en vez de IDs manuales
+El usuario pidió que en **todo** el sistema, cualquier campo que referencia otra tabla por ID (paciente, médico, cama, tipo de cita, especialidad, tipo de examen, parámetro, medicamento, tipo de estudio, personal, radiólogo, servicio, método de pago, nivel de triage) se muestre como `<select>` con nombre legible, no como `<input type="number">` de ID manual.
+
+- `app.js`: nuevo helper `populateSelect(selector, endpoint, labelFn, options)` — llena un `<select>` vía AJAX con placeholder y valor preseleccionado opcional.
+- `crud-module.js`: `buildForm()` soporta `field.type === 'select'` (opciones estáticas o dinámicas vía `optionsEndpoint`).
+- Nuevo endpoint `GET /staff/personal` (todo el personal activo) para los combos de "realizado por"/radiólogo en Laboratorio y Radiología.
+- Convertidos a `<select>` poblado dinámicamente: Agenda médica y Personal (`crud-module.js`), Hospitalización (paciente/cama/médico al admitir), Laboratorio (paciente/médico al ordenar, tipo de examen, parámetro de resultado), Farmacia (paciente/médico de receta, medicamento de ítem — con tabla de ítems ahora mostrando el nombre del medicamento en vez del ID), Radiología (paciente/médico/tipo de estudio al ordenar, personal que realiza el estudio, radiólogo del informe), Facturación (paciente y hasta 2 servicios al facturar, método de pago), Emergencias (paciente y nivel de triage al registrar caso, médico al atender).
+
+### Verificación realizada
+- `php -l` sin errores en las 3 páginas PHP modificadas en esta última tanda (radiology.php, billing.php, emergency.php) y `node -c` sin errores en sus JS correspondientes.
+- Servidor de desarrollo (`php -S localhost:8000 -t public`) levantado; las 3 páginas y sus JS responden `302`/`200` (redirección a login por falta de sesión es el comportamiento esperado, confirma que no hay error fatal de PHP) y `200` respectivamente.
+- Verificación visual en navegador pendiente de confirmación directa del usuario.

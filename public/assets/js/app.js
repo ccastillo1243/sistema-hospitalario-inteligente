@@ -39,6 +39,33 @@ function statusBadge(estado) {
 }
 
 /**
+ * Llena un <select> con las opciones que devuelve un endpoint de la API.
+ * labelFn recibe cada item y devuelve el texto a mostrar; valueKey es la
+ * propiedad que se usa como value (por defecto "id"). Devuelve la promesa
+ * de la petición por si el que llama necesita encadenar algo después.
+ */
+function populateSelect(selector, endpoint, labelFn, options) {
+    options = options || {};
+    var valueKey = options.valueKey || 'id';
+    var placeholder = options.placeholder || 'Selecciona…';
+    var selected = options.selected;
+
+    var $el = $(selector);
+    $el.empty();
+    $el.append($('<option>').val('').text(placeholder));
+
+    return apiRequest({ url: endpoint, method: 'GET' }).done(function (data) {
+        (data.items || []).forEach(function (item) {
+            var $opt = $('<option>').val(item[valueKey]).text(labelFn(item));
+            $el.append($opt);
+        });
+        if (selected !== undefined && selected !== null) {
+            $el.val(String(selected));
+        }
+    });
+}
+
+/**
  * Filtra en vivo las filas de una tabla según el texto de un input de
  * búsqueda (usado por las páginas a medida que no usan CrudModule).
  */

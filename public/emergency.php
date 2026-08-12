@@ -26,8 +26,8 @@ require __DIR__ . '/../src/views/partials/header.php';
             <div class="modal">
                 <div class="modal-header"><h3>Nuevo caso</h3><button type="button" class="icon-btn" id="cancelCaseBtn">&times;</button></div>
                 <form id="caseForm">
-                    <div class="field"><label>ID paciente</label><input type="number" id="cas_paciente_id" required></div>
-                    <div class="field"><label>ID nivel de triage (1=más urgente, 5=menos)</label><input type="number" id="cas_nivel_id" required></div>
+                    <div class="field"><label>Paciente</label><select id="cas_paciente_id" required></select></div>
+                    <div class="field"><label>Nivel de triage (1=más urgente, 5=menos)</label><select id="cas_nivel_id" required></select></div>
                     <div class="field"><label>Motivo</label><input type="text" id="cas_motivo" required></div>
                     <div class="form-actions">
                         <button type="submit" class="btn">Registrar caso</button>
@@ -42,7 +42,7 @@ require __DIR__ . '/../src/views/partials/header.php';
                 <div class="modal-header"><h3>Atender caso <span id="attendCaseId"></span></h3><button type="button" class="icon-btn" id="cancelAttendBtn">&times;</button></div>
                 <form id="attendForm">
                     <input type="hidden" id="atn_caso_id">
-                    <div class="field"><label>ID médico</label><input type="number" id="atn_medico_id" required></div>
+                    <div class="field"><label>Médico</label><select id="atn_medico_id" required></select></div>
                     <div class="field"><label>Notas</label><input type="text" id="atn_notas"></div>
                     <div class="form-actions">
                         <button type="submit" class="btn">Registrar atención</button>

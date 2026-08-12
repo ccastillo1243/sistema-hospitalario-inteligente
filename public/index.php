@@ -55,6 +55,7 @@ $router->post('/patients', [PatientController::class, 'store']);
 $router->put('/patients/{id}', [PatientController::class, 'update']);
 $router->delete('/patients/{id}', [PatientController::class, 'destroy']);
 
+$router->get('/staff/personal', [StaffController::class, 'personal']);
 $router->get('/staff/doctors', [StaffController::class, 'doctors']);
 $router->post('/staff/doctors', [StaffController::class, 'createDoctor']);
 $router->put('/staff/doctors/{id}', [StaffController::class, 'updateDoctor']);

@@ -30,8 +30,8 @@ require __DIR__ . '/../src/views/partials/header.php';
             <div class="modal">
                 <div class="modal-header"><h3>Nueva receta</h3><button type="button" class="icon-btn" id="cancelPrescriptionBtn">&times;</button></div>
                 <form id="prescriptionForm">
-                    <div class="field"><label>ID paciente</label><input type="number" id="rec_paciente_id" required></div>
-                    <div class="field"><label>ID médico</label><input type="number" id="rec_medico_id" required></div>
+                    <div class="field"><label>Paciente</label><select id="rec_paciente_id" required></select></div>
+                    <div class="field"><label>Médico</label><select id="rec_medico_id" required></select></div>
                     <div class="form-actions">
                         <button type="submit" class="btn">Crear receta</button>
                         <button type="button" class="btn btn-secondary" id="cancelPrescriptionBtn2">Cancelar</button>
@@ -44,7 +44,7 @@ require __DIR__ . '/../src/views/partials/header.php';
             <h3>Ítems de la receta <span id="itemsRecetaId"></span></h3>
             <form id="itemForm" class="field-row" style="align-items:flex-end;">
                 <input type="hidden" id="item_receta_id">
-                <div class="field"><label>ID medicamento</label><input type="number" id="item_medicamento_id" required></div>
+                <div class="field"><label>Medicamento</label><select id="item_medicamento_id" required></select></div>
                 <div class="field"><label>Cantidad</label><input type="number" id="item_cantidad" required></div>
                 <div class="field"><label>Indicaciones</label><input type="text" id="item_indicaciones"></div>
                 <div class="field" style="display:flex; gap:8px;">

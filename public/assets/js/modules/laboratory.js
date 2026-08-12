@@ -32,7 +32,7 @@ $(function () {
             }
             data.items.forEach(function (m) {
                 var $actions = $('<td>');
-                $('<button class="btn btn-sm btn-secondary">Registrar resultado</button>').on('click', function () { openResult(m.id); }).appendTo($actions);
+                $('<button class="btn btn-sm btn-secondary">Registrar resultado</button>').on('click', function () { openResult(m); }).appendTo($actions);
                 $tbody.append(
                     $('<tr>').append($('<td>').text(m.codigo_barras), $('<td>').text(m.tipo_muestra), $actions)
                 );
@@ -43,18 +43,34 @@ $(function () {
     function openSamples(ordenId) {
         $('#sam_orden_id').val(ordenId);
         $('#sampleOrderId').text(ordenId);
+        populateSelect('#sam_tipo_examen_id', '/lab/test-types',
+            function (t) { return t.nombre; },
+            { placeholder: 'Selecciona un tipo de examen…' });
         $('#samplesPanel').show();
         $('html, body').animate({ scrollTop: $('#samplesPanel').offset().top - 90 }, 200);
         loadSamples(ordenId);
     }
 
-    function openResult(muestraId) {
-        $('#res_muestra_id').val(muestraId);
-        $('#resultSampleId').text(muestraId);
+    function openResult(muestra) {
+        $('#res_muestra_id').val(muestra.id);
+        $('#resultSampleId').text(muestra.codigo_barras);
+        populateSelect('#res_parametro_id', '/lab/parameters?tipo_examen_id=' + muestra.tipo_examen_id,
+            function (p) { return p.nombre + (p.unidad ? ' (' + p.unidad + ')' : ''); },
+            { placeholder: 'Selecciona un parámetro…' });
         $('#resultModal').addClass('open');
     }
 
-    $('#newOrderBtn').on('click', function () { $('#orderModal').addClass('open'); });
+    function openOrderModal() {
+        populateSelect('#ord_paciente_id', '/patients?pageSize=100',
+            function (p) { return p.nombre + ' ' + p.apellido + ' — ' + p.documento_identidad; },
+            { placeholder: 'Selecciona un paciente…' });
+        populateSelect('#ord_medico_id', '/staff/doctors',
+            function (m) { return m.nombre + ' ' + m.apellido; },
+            { placeholder: 'Selecciona un médico…' });
+        $('#orderModal').addClass('open');
+    }
+
+    $('#newOrderBtn').on('click', openOrderModal);
     $('#cancelOrderBtn, #cancelOrderBtn2').on('click', function () { $('#orderModal').removeClass('open'); });
     $('#closeSamplesBtn').on('click', function () { $('#samplesPanel').hide(); });
     $('#cancelResultBtn, #cancelResultBtn2').on('click', function () { $('#resultModal').removeClass('open'); });

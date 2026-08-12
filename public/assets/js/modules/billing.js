@@ -12,6 +12,9 @@ $(function () {
                     $('<button class="btn btn-sm btn-secondary">Registrar pago</button>').on('click', function () {
                         $('#pay_factura_id').val(f.id);
                         $('#payInvoiceId').text(f.id);
+                        populateSelect('#pay_metodo_id', '/billing/payment-methods',
+                            function (m) { return m.nombre; },
+                            { placeholder: 'Selecciona un método de pago…' });
                         $('#paymentModal').addClass('open');
                     }).appendTo($actions);
                 } else {
@@ -33,7 +36,20 @@ $(function () {
         });
     }
 
-    $('#newInvoiceBtn').on('click', function () { $('#invoiceModal').addClass('open'); });
+    function openInvoiceModal() {
+        populateSelect('#inv_paciente_id', '/patients?pageSize=100',
+            function (p) { return p.nombre + ' ' + p.apellido + ' — ' + p.documento_identidad; },
+            { placeholder: 'Selecciona un paciente…' });
+        populateSelect('#inv_servicio1_id', '/billing/services',
+            function (s) { return s.nombre + ' — $' + s.precio; },
+            { placeholder: 'Selecciona un servicio…' });
+        populateSelect('#inv_servicio2_id', '/billing/services',
+            function (s) { return s.nombre + ' — $' + s.precio; },
+            { placeholder: 'Ninguno' });
+        $('#invoiceModal').addClass('open');
+    }
+
+    $('#newInvoiceBtn').on('click', openInvoiceModal);
     $('#cancelInvoiceBtn, #cancelInvoiceBtn2').on('click', function () { $('#invoiceModal').removeClass('open'); });
     $('#cancelPaymentBtn, #cancelPaymentBtn2').on('click', function () { $('#paymentModal').removeClass('open'); });
     $('.modal-overlay').on('click', function (e) { if (e.target === this) $(this).removeClass('open'); });
